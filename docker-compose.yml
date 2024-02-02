@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  mosdns:
+    # image: "irinesistiana/mosdns:latest"
+    image: "shelken/mosdns:latest"
+    container_name: "mosdns"
+    # volumes:
+    #   - ./config:/etc/mosdns
+    ports:
+      # - 5454:5533/tcp
+      - 5454:5533/udp
+    environment:
+      TZ: Asia/Shanghai

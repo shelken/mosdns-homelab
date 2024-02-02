@@ -1,0 +1,18 @@
+.
+├── bin
+│   └── updator.sh
+├── config.yaml
+├── custom_rules
+│   ├── block.txt
+│   ├── ddns.txt
+│   ├── direct.txt
+│   ├── host.txt
+│   ├── proxy.txt
+│   └── redirect.txt
+└── online_rules
+    ├── apple_cn.txt
+    ├── direct_list.txt
+    ├── gfw.txt
+    ├── google_cn.txt
+    ├── greatfire.txt
+    └── reject_list.txt

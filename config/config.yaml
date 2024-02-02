@@ -1,0 +1,199 @@
+log:
+  level: debug # 日志级别。可选 "debug" "info" "warn" "error"。默认 "info"。
+  production: false # 纯 json 输出。
+  # file:
+  #   "/var/log/mosdns.log" # (实验性) 记录日志到文件。默认输出至 stderr。
+    # 注意: 日志应由守护进程处理而不是直接写入文件。
+    # 此选项仅用于调试。panic 日志不会被记录，其内容仍会
+    # 输出至 stderr 。
+
+# (实验性) API 入口设置
+api:
+ http: "127.0.0.1:8080" # 在该地址启动 api 接口。
+
+# []string, 从其他配置文件载入 plugins 插件设置。
+# include 的插件会比本配置文件中的插件先初始化。
+include: []
+
+# 插件设置
+plugins:
+
+  - tag: ddns_domain
+    type: domain_set
+    args:
+      # exps:                                   # 域名表达式。
+      #   - "qq.com"
+      files:
+        - ./custom_rules/ddns.txt
+
+  - tag: direct_domain
+    type: domain_set
+    args:
+      # exps:                         # 域名表达式。
+      #   - "qq.com"
+      files:
+        - ./custom_rules/direct.txt
+
+  - tag: proxy_domain
+    type: domain_set
+    args:
+      files:
+        - ./custom_rules/proxy.txt
+
+  - tag: block_domain
+    type: domain_set
+    args:
+      files:
+        - ./custom_rules/block.txt
+
+  # homelab-host
+  - tag: "homelab-hosts"
+    type: "hosts"
+    args:
+      #entries:                         # []string
+      #  - "google.com 108.177.122.113" # 记录
+      files: # []string
+        - "./hosts.d/homelab-hosts" # 从外部文件载入。
+
+  - tag: redirect_domain
+    type: redirect
+    args:
+      # rules:
+      # # 格式 [域名匹配规则] [重定向至域名]
+      # - a.com b.com
+      files:
+        - ./custom_rules/redirect.txt
+
+  - tag: cn_domain
+    type: domain_set
+    args:
+      files:
+        - ./online_rules/direct_list.txt
+        - ./online_rules/apple_cn.txt
+        - ./online_rules/google_cn.txt
+
+  - tag: not_cn_domain
+    type: domain_set
+    args:
+      files:
+        - ./online_rules/proxy_list.txt
+        - ./online_rules/gfw.txt
+        - ./online_rules/greatfire.txt
+
+  - tag: ads_domain
+    type: domain_set
+    args:
+      files:
+        - ./online_rules/reject_list.txt
+
+  - tag: forward_local
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
+        - tag: ali
+          # addr: https://dns.alidns.com/dns-query
+          addr: https://223.5.5.5/dns-query
+          # dial_addr: 223.5.5.5
+        - tag: DNSPod
+          # addr: https://doh.pub/dns-query
+          addr: https://120.53.53.53/dns-query
+          # dial_addr: 120.53.53.53
+
+  - tag: forward_remote
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
+        - tag: google
+          # addr: https://dns.google/dns-query
+          addr: https://8.8.8.8/dns-query
+          # dial_addr: 8.8.8.8
+        - tag: cloudflare
+          # addr: https://cloudflare-dns.com/dns-query
+          addr: https://1.1.1.1/dns-query
+          # dial_addr: 1.1.1.1
+
+  - tag: fallback_query
+    type: fallback
+    args:
+      primary: forward_local # 主可执行插件的 tag
+      secondary: forward_remote # 副可执行插件的 tag
+      threshold: 500 # 无响应回滚阈值。单位毫秒。默认 500 。
+      always_standby: true # 副可执行插件始终待命。
+
+  - tag: lazy_cache
+    type: cache
+    args:
+      size: 8192
+      lazy_cache_ttl: 7200
+      dump_file: "/tmp/cache.dump"
+      dump_interval: 600
+
+  - tag: "main"
+    type: "sequence"
+    args:
+      - exec: $homelab-hosts
+      - matches:
+          - has_resp
+        exec: accept
+
+      - matches:
+          - "!qname $ddns_domain"
+        exec: $lazy_cache
+      - matches:
+          - has_resp
+        exec: accept
+
+      - exec: $redirect_domain
+      - matches:
+          - has_resp
+        exec: accept
+
+      - matches:
+          - qname $direct_domain
+        exec: $forward_local
+      - matches:
+          - has_resp
+        exec: accept
+
+      - matches:
+          - qname $proxy_domain
+        exec: $forward_remote
+      - matches:
+          - has_resp
+        exec: accept
+
+      - matches:
+          - qname $block_domain $ads_domain
+        exec: reject 3 # 执行 直接返回 NXDOMAIN(3) 屏蔽。
+
+      - matches:
+          - qname $cn_domain
+        exec: $forward_local
+      - matches:
+          - has_resp
+        exec: accept
+
+      - matches:
+          - qname $not_cn_domain
+        exec: $forward_remote
+      - matches:
+          - has_resp
+        exec: accept
+
+      # 其他未命中域名处理逻辑，根据返回的IP位置转发到相应的DNS上游进行解析
+      - exec: $fallback_query
+      - matches:
+          - "!has_resp"
+        exec: drop_resp
+
+  # 启动 udp 和 tcp 服务器。
+  - type: udp_server
+    args:
+      entry: main # 收到的请求会执行上面的逻辑
+      listen: :5533
+  - type: tcp_server
+    args:
+      entry: main
+      listen: :5533
