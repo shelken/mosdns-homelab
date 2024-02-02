@@ -127,7 +127,7 @@ plugins:
     args:
       size: 8192
       lazy_cache_ttl: 7200
-      dump_file: "/tmp/cache.dump"
+      # dump_file: "/tmp/cache.dump"
       dump_interval: 600
 
   - tag: "main"
