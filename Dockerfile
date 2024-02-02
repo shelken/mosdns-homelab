@@ -3,6 +3,11 @@
 # RUN /tmp/update-online-config.sh
 FROM irinesistiana/mosdns:v5.3.1
 
+LABEL org.opencontainers.image.source=https://github.com/shelken/mosdns-homelab
+LABEL org.opencontainers.image.description="自用 mosdns 镜像及配置"
+LABEL org.opencontainers.image.title="自用 mosdns 镜像及配置"
+LABEL org.opencontainers.image.authors=shelken
+
 WORKDIR /etc/mosdns/online_rules
 ADD https://gcore.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/apple-cn.txt     apple_cn.txt
 ADD https://gcore.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/direct-list.txt  direct_list.txt
