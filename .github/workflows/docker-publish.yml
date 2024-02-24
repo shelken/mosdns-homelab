@@ -7,8 +7,8 @@ name: Docker
 
 on:
   schedule:
-    # 每周六晚八点40
-    - cron: "40 20 * * 6"
+    # 每周六
+    - cron: "0 21 * * 6"
   workflow_dispatch:
   push:
     # branches: [ "main" ]
