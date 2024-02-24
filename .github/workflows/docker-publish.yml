@@ -8,7 +8,7 @@ name: Docker
 on:
   schedule:
     # 每周六
-    - cron: "5 13 * * 6"
+    - cron: "5 14 * * 6"
   workflow_dispatch:
   push:
     # branches: [ "main" ]
@@ -78,9 +78,10 @@ jobs:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
             ${{ env.IMAGE_NAME }}
-          #tags: |
-          #  type=schedule,pattern=latest
-          #  type=ref,event=tag
+          tags: |
+            type=schedule,pattern=latest,enable={{is_default_branch}}
+            type=ref,event=tag
+            type=ref,event=branch
           flavor: |
             latest=auto
 
