@@ -6,13 +6,14 @@ name: Docker
 # documentation.
 
 on:
-  # schedule:
-  #   - cron: '24 4 * * *'
+  schedule:
+    # 每周六晚八点40
+    - cron: "40 20 * * 6"
   workflow_dispatch:
   push:
     # branches: [ "main" ]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    tags: ["v*.*.*"]
   # pull_request:
   #   branches: [ "main" ]
 
@@ -22,10 +23,8 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.actor }}/mosdns
 
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,7 +43,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@6e04d228eb30da1757ee4e1dd75a0ec73a653e06 #v3.1.1
         with:
-          cosign-release: 'v2.1.1'
+          cosign-release: "v2.1.1"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -79,6 +78,11 @@ jobs:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
             ${{ env.IMAGE_NAME }}
+          #tags: |
+          #  type=schedule,pattern=latest
+          #  type=ref,event=tag
+          flavor: |
+            latest=auto
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
