@@ -11,7 +11,10 @@ on:
     - cron: "5 14 * * 6"
   workflow_dispatch:
   push:
-    # branches: [ "main" ]
+    branches: [ "main" ]
+    paths:
+      - "config/**"
+      - "Dockerfile"
     # Publish semver tags as releases.
     tags: ["v*.*.*"]
   # pull_request:
