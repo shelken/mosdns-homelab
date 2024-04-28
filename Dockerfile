@@ -18,8 +18,8 @@ ADD https://gcore.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt  
 ADD https://gcore.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/greatfire.txt    greatfire.txt
 
 WORKDIR /etc/mosdns
-COPY config/custom_rules/*    custom_rules/
-COPY config/hosts.d/*         hosts.d/
-COPY config/config.yaml     .
+COPY config/custom_rules    custom_rules/
+COPY config/hosts           hosts/
+COPY config/config.yaml     ./
 
 EXPOSE 5533

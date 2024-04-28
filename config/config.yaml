@@ -53,7 +53,7 @@ plugins:
       #entries:                         # []string
       #  - "google.com 108.177.122.113" # 记录
       files: # []string
-        - "./hosts.d/homelab-hosts" # 从外部文件载入。
+        - "./hosts/homelab-hosts" # 从外部文件载入。
 
   - tag: redirect_domain
     type: redirect
