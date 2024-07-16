@@ -1,200 +1,199 @@
 log:
-  level: debug # 日志级别。可选 "debug" "info" "warn" "error"。默认 "info"。
-  production: false # 纯 json 输出。
-  # file:
-  #   "/var/log/mosdns.log" # (实验性) 记录日志到文件。默认输出至 stderr。
-    # 注意: 日志应由守护进程处理而不是直接写入文件。
-    # 此选项仅用于调试。panic 日志不会被记录，其内容仍会
-    # 输出至 stderr 。
+  level: debug
+  # file: "/var/log/mosdns.log"
 
-# (实验性) API 入口设置
-api:
- http: "127.0.0.1:8080" # 在该地址启动 api 接口。
+include:
+  - "/etc/mosdns/dat_exec.yaml"
+  - "/etc/mosdns/dns.yaml"
 
-# []string, 从其他配置文件载入 plugins 插件设置。
-# include 的插件会比本配置文件中的插件先初始化。
-include: []
-
-# 插件设置
 plugins:
-
-  - tag: ddns_domain
-    type: domain_set
+  - tag: reject_null_domain
+    type: sequence
     args:
-      # exps:                                   # 域名表达式。
-      #   - "qq.com"
-      files:
-        - ./custom_rules/ddns.txt
+      - exec: query_summary reject_null_domain
+      - exec: $reject_3
 
-  - tag: direct_domain
-    type: domain_set
+  - tag: reject_qtype65
+    type: sequence
     args:
-      # exps:                         # 域名表达式。
-      #   - "qq.com"
-      files:
-        - ./custom_rules/direct.txt
+      - exec: query_summary reject_qtype65
+      - exec: $reject_3
 
-  - tag: proxy_domain
-    type: domain_set
+  - tag: reject_ad
+    type: sequence
     args:
-      files:
-        - ./custom_rules/proxy.txt
+      - exec: query_summary reject_ad
+      - exec: $reject_3
 
-  - tag: block_domain
-    type: domain_set
+  ################ 序列 #################
+  - tag: dns_nocn
+    type: "fallback"
     args:
-      files:
-        - ./custom_rules/block.txt
+      primary: cloudflare # 主dns
+      secondary: google # 备用dns
+      threshold: 500 # 无响应切换 毫秒
+      always_standby: true # 副可执行插件始终待命
 
-  # homelab-host
-  - tag: "homelab-hosts"
-    type: "hosts"
+  # dns-cn 序列
+  - tag: dns_cn
+    type: "fallback"
     args:
-      #entries:                         # []string
-      #  - "google.com 108.177.122.113" # 记录
-      files: # []string
-        - "./hosts/custom"
-        - "./hosts/homelab-hosts" # 从外部文件载入。
+      primary: ali # 主dns
+      secondary: dnspod # 备用dns
+      threshold: 500
+      always_standby: true # 副可执行插件始终待命
 
-  - tag: redirect_domain
-    type: redirect
+  - tag: dns_nocn_seq
+    type: sequence
     args:
-      # rules:
-      # # 格式 [域名匹配规则] [重定向至域名]
-      # - a.com b.com
-      files:
-        - ./custom_rules/redirect.txt
+      - exec: query_summary dns_nocn
+      - exec: $dns_nocn
 
-  - tag: cn_domain
-    type: domain_set
+  - tag: dns_cn_seq
+    type: sequence
     args:
-      files:
-        - ./online_rules/direct_list.txt
-        - ./online_rules/apple_cn.txt
-        - ./online_rules/google_cn.txt
+      - exec: query_summary dns_cn
+      - exec: $dns_cn
 
-  - tag: not_cn_domain
-    type: domain_set
+  - tag: local_seq
+    type: sequence
     args:
-      files:
-        - ./online_rules/proxy_list.txt
-        - ./online_rules/gfw.txt
-        - ./online_rules/greatfire.txt
+      - exec: query_summary local
+      - exec: $local
 
-  - tag: ads_domain
-    type: domain_set
+  - tag: custom_hosts_seq
+    type: sequence
     args:
-      files:
-        - ./online_rules/reject_list.txt
+      - exec: query_summary custom-hosts
+      - exec: $custom-hosts
 
-  - tag: forward_local
-    type: forward
+  - tag: other_seq # 其他特殊情况统一使用 dns_cn 处理
+    type: sequence
     args:
-      concurrent: 2
-      upstreams:
-        - tag: ali
-          # addr: https://dns.alidns.com/dns-query
-          addr: https://223.5.5.5/dns-query
-          # dial_addr: 223.5.5.5
-        - tag: DNSPod
-          # addr: https://doh.pub/dns-query
-          addr: https://120.53.53.53/dns-query
-          # dial_addr: 120.53.53.53
+      - exec: query_summary other
+      - exec: $dns_cn
 
-  - tag: forward_remote
-    type: forward
+  # query cn 域名
+  - tag: query_cn
+    type: sequence
     args:
-      concurrent: 2
-      upstreams:
-        - tag: google
-          # addr: https://dns.google/dns-query
-          addr: https://8.8.8.8/dns-query
-          # dial_addr: 8.8.8.8
-        - tag: cloudflare
-          # addr: https://cloudflare-dns.com/dns-query
-          addr: https://1.1.1.1/dns-query
-          # dial_addr: 1.1.1.1
+      - exec: $ecs_cn
+      - exec: $dns_cn_seq
+      - matches: "!resp_ip $geoip_cn" # 响应非 cn ip
+        exec: drop_resp # 丢弃
 
-  - tag: fallback_query
-    type: fallback
+  # query nocn 域名
+  - tag: query_nocn
+    type: sequence
     args:
-      primary: forward_local # 主可执行插件的 tag
-      secondary: forward_remote # 副可执行插件的 tag
-      threshold: 500 # 无响应回滚阈值。单位毫秒。默认 500 。
-      always_standby: true # 副可执行插件始终待命。
+      # - exec: $ecs-cn
+      - exec: prefer_ipv4
+      - exec: $dns_nocn_seq
+      - matches: "resp_ip $geoip_cn" # 响应为 cn ip
+        exec: drop_resp # 丢弃
 
-  - tag: lazy_cache
-    type: cache
+  # query lan
+  - tag: query_lan
+    type: sequence
     args:
-      size: 8192
-      lazy_cache_ttl: 7200
-      # dump_file: "/tmp/cache.dump"
-      dump_interval: 600
+      - exec: $cache_lan
+      - matches: has_resp # 命中了 lan cache
+        exec: return
+      # - exec: $no_ecs
+      - exec: $local_seq
 
-  - tag: "main"
-    type: "sequence"
+  # query hosts
+  - tag: query_hosts
+    type: sequence
     args:
-      - exec: $homelab-hosts
-      - matches:
-          - has_resp
-        exec: accept
+      - exec: $cache_lan
+      - matches: has_resp # 命中了 cache
+        exec: return
+      # - exec: $no_ecs
+      - exec: $custom_hosts_seq
 
-      - matches:
-          - "!qname $ddns_domain"
-        exec: $lazy_cache
-      - matches:
-          - has_resp
-        exec: accept
+  # 其他所有情况
+  - tag: query_other 
+    type: sequence
+    args:
+      # - exec: $no_ecs 
+      - exec: $other_seq
 
-      - exec: $redirect_domain
-      - matches:
-          - has_resp
-        exec: accept
+  - tag: pre_handle
+    type: sequence
+    args:
+      - exec: $ttl_1h # ttl 1h
+      - exec: accept # 接受响应,终止流程
 
-      - matches:
-          - qname $direct_domain
-        exec: $forward_local
-      - matches:
-          - has_resp
-        exec: accept
+  - tag: main_handle
+    type: sequence
+    args:
+      - exec: $ttl_5m # ttl 5min
+      - exec: accept # 接受响应,终止流程
 
-      - matches:
-          - qname $proxy_domain
-        exec: $forward_remote
-      - matches:
-          - has_resp
-        exec: accept
+  # pre_sequence 结果处理 
+  - tag: has_resp_pre
+    type: sequence
+    args:
+      - matches: has_resp # 如果 pre 序列已有响应
+        exec: goto pre_handle
 
-      - matches:
-          - qname $block_domain $ads_domain
-        exec: reject 3 # 执行 直接返回 NXDOMAIN(3) 屏蔽。
+  # main_sequence 结果处理
+  - tag: has_resp_main
+    type: sequence
+    args:
+      - matches: has_resp
+        exec: goto main_handle
 
-      - matches:
-          - qname $cn_domain
-        exec: $forward_local
-      - matches:
-          - has_resp
-        exec: accept
+  # pre_sequence
+  - tag: pre_sequence
+    type: sequence
+    args:
+      - matches: qtype 65 # TYPE 65 类型|DNS服务器状态
+        exec: $reject_qtype65
+      - matches: "qname keyword::" # 无效域名
+        exec: $reject_null_domain
+      - matches: qtype 12 # TYPE 12 类型|反查域名 PTR 记录
+        exec: $query_other
+      - matches: qtype 255 # TYPE 255 类型|DNS服务器拓展支持
+        exec: $query_other
+      - matches: ptr_ip $geoip_private # private ip
+        exec: $query_lan
+      - exec: jump has_resp_pre
 
-      - matches:
-          - qname $not_cn_domain
-        exec: $forward_remote
-      - matches:
-          - has_resp
-        exec: accept
+  # main_sequence
+  - tag: main_sequence
+    type: sequence
+    args:
+      - exec: $query_hosts
+      - exec: jump has_resp_main  
+      - matches: qname $geosite_ads-all # ad 域名
+        exec: $reject_ad
+      - exec: $cache_wan # cache wan
+      - exec: jump has_resp_main
+      - matches: qname $geosite_cn # cn 域名
+        exec: $query_cn
+      - exec: jump has_resp_main
+      - matches: qname $geosite_location-!cn # 非 cn 域名
+        exec: $query_nocn
+      - exec: jump has_resp_main
+      # 其他
+      - exec: $no_ecs
+      - exec: $query_nocn
+      - exec: jump has_resp_main
 
-      # 其他未命中域名处理逻辑，根据返回的IP位置转发到相应的DNS上游进行解析
-      - exec: $fallback_query
-      - matches:
-          - "!has_resp"
-        exec: drop_resp
+  - tag: sequence
+    type: sequence
+    args:
+      - exec: $pre_sequence # 预处理
+      - exec: $main_sequence # 主执行序列
 
-  # 启动 udp 和 tcp 服务器。
+  # 在同一端口启动 udp 和 tcp 服务器。
   - type: udp_server
     args:
-      entry: main # 收到的请求会执行上面的逻辑
-      listen: :5533
+      entry: sequence
+      listen: :53
   - type: tcp_server
     args:
-      entry: main
-      listen: :5533
+      entry: sequence
+      listen: :53
