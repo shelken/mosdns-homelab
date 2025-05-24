@@ -1,6 +1,6 @@
 log:
   level: debug
-  # file: "/var/log/mosdns.log"
+  file: "/logs/mosdns.log"
 
 include:
   - "/etc/mosdns/dat_exec.yaml"
