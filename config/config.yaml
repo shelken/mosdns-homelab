@@ -2,6 +2,10 @@ log:
   level: debug
   file: "/logs/mosdns.log"
 
+# 用于普罗米修斯监控
+api:
+  http: "0.0.0.0:8338" # api 监听地址
+
 include:
   - "/etc/mosdns/dat_exec.yaml"
   - "/etc/mosdns/dns.yaml"
