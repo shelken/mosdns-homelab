@@ -17,7 +17,7 @@ RUN set -xe \
 # FROM curlimages/curl:8.6.0 as downloader
 # ADD update-online-config.sh /tmp
 # RUN /tmp/update-online-config.sh
-FROM irinesistiana/mosdns:latest
+FROM irinesistiana/mosdns:v5.3.3
 
 LABEL org.opencontainers.image.source=https://github.com/shelken/mosdns-homelab
 LABEL org.opencontainers.image.description="自用 mosdns 镜像及配置"
