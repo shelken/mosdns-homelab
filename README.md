@@ -2,7 +2,7 @@
 
 自用mosdns docker镜像
 
-[配置参考来源](https://github.com/Jasper-1024/mosdns_docker/blob/master/mosdns_v5/README.md)
+[配置参考来源](https://github.com/pmkol/easymosdns)
 
 ## CheatSheet
 

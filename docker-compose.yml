@@ -2,12 +2,13 @@ version: "3.8"
 services:
   mosdns:
     # image: "irinesistiana/mosdns:latest"
-    image: "shelken/mosdns:latest"
+    image: ghcr.io/shelken/mosdns:latest
     container_name: "mosdns"
     # volumes:
     #   # 如果你需要自定义hosts
     #   - ./custom-hosts:/etc/mosdns/hosts/custom
     ports:
       - 5533:53/udp
+      # - 8338:8338/tcp # metrics
     environment:
       TZ: Asia/Shanghai

@@ -1,39 +1,40 @@
-FROM golang:1.19.2-alpine as unpack
-WORKDIR /
+FROM curlimages/curl:8.6.0 AS downloader
+WORKDIR /tmp
 
 RUN set -xe \
-  && apk add --no-cache curl \
-  && go install github.com/urlesistiana/v2dat@latest \
-  && curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat \
-  && curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
-  && mkdir dat \
-  && v2dat unpack geoip -o dat -f "private" geoip.dat \
-  && v2dat unpack geoip -o dat -f "cn" geoip.dat \
-  && v2dat unpack geosite -o dat -f "cn" geosite.dat \
-  && v2dat unpack geosite -o dat -f "gfw" geosite.dat \
-  && v2dat unpack geosite -o dat -f "category-ads-all" geosite.dat \
-  && v2dat unpack geosite -o dat -f "geolocation-!cn" geosite.dat
+  && mkdir -p rules \
+  && curl https://raw.githubusercontent.com/pmkol/easymosdns/rules/china_domain_list.txt -o rules/china_domain_list.txt \
+  && curl https://raw.githubusercontent.com/pmkol/easymosdns/rules/gfw_domain_list.txt -o rules/gfw_domain_list.txt \ 
+  && curl https://raw.githubusercontent.com/pmkol/easymosdns/rules/cdn_domain_list.txt -o rules/cdn_domain_list.txt \ 
+  && curl https://raw.githubusercontent.com/pmkol/easymosdns/rules/china_ip_list.txt -o rules/china_ip_list.txt \ 
+  && curl https://raw.githubusercontent.com/pmkol/easymosdns/rules/gfw_ip_list.txt -o rules/gfw_ip_list.txt  \ 
+  && curl https://raw.githubusercontent.com/pmkol/easymosdns/rules/ad_domain_list.txt -o rules/ad_domain_list.txt
 
 # FROM curlimages/curl:8.6.0 as downloader
 # ADD update-online-config.sh /tmp
 # RUN /tmp/update-online-config.sh
-FROM irinesistiana/mosdns:v5.3.3
+FROM irinesistiana/mosdns:v4.5.3
 
 LABEL org.opencontainers.image.source=https://github.com/shelken/mosdns-homelab
 LABEL org.opencontainers.image.description="自用 mosdns 镜像及配置"
 LABEL org.opencontainers.image.title="自用 mosdns 镜像及配置"
 LABEL org.opencontainers.image.authors=shelken
 
-COPY config/config.yaml /etc/mosdns/config.yaml
-COPY config/dat_exec.yaml /etc/mosdns/dat_exec.yaml
-COPY config/dns.yaml /etc/mosdns/dns.yaml
-COPY config/entrypoint.sh /entrypoint.sh
+# 主配置
+COPY config/config.yaml /etc/mosdns/
+COPY config/entrypoint.sh /
 RUN chmod a+x /entrypoint.sh
-# data
-COPY config/hosts/custom /etc/mosdns/hosts/custom
-COPY --from=unpack /dat /dat
+
+# 用于mosdns日志输出
+RUN mkdir /logs && touch /logs/mosdns.log
+
+# 规则源拷贝
+COPY --from=downloader /tmp/rules /etc/mosdns/rules
+COPY config/ecs_cn_domain.txt /etc/mosdns/
+COPY config/ecs_noncn_domain.txt /etc/mosdns/
+COPY config/hosts.txt /etc/mosdns/
 
 VOLUME /etc/mosdns
-EXPOSE 53/udp 53/tcp
+EXPOSE 53/udp 53/tcp 8338/tcp
 
 ENTRYPOINT [ "/entrypoint.sh" ]
