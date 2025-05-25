@@ -1,6 +1,6 @@
 log:
   level: debug
-  file: "/logs/mosdns.log"
+  # file: "/logs/mosdns.log"
 
 # 用于普罗米修斯监控
 api:
