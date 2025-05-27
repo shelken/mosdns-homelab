@@ -76,8 +76,8 @@ plugins:
     type: ecs
     args:
       auto: false
-      ipv4: "101.6.6.0"
-      ipv6: "2001:da8::"
+      ipv4: "$ECS_LOCAL_IPV4"
+      ipv6: "$ECS_LOCAL_IPV6"
       force_overwrite: false
   - tag: ecs_global
     type: ecs
