@@ -257,7 +257,7 @@ plugins:
     type: fast_forward
     args:
       upstream:
-        - addr: "https://mosdns.apad.pro/api-query"
+        - addr: "$PRIVATE_DNS_SERVER"
           bootstrap: "223.6.6.6"
           #dial_addr: "ip:port"
   # 数据统计

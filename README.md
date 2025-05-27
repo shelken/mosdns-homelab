@@ -7,6 +7,7 @@
 ## 变更
 
 - 使用IPV6,不会仅返回v4
+- 引入PRIVATE_DNS_SERVER变量，用于自定义自己的上游dns
 
 ## CheatSheet
 
