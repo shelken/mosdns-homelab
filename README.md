@@ -4,22 +4,28 @@
 
 [配置参考来源](https://github.com/pmkol/easymosdns)
 
+## 变更
+
+- 使用IPV6,不会仅返回v4
+
 ## CheatSheet
 
 - 变更后构建
 
 ```shell
-just test
-# or
-docker-buildx build . --platform linux/arm64,linux/amd64 --tag shelken/mosdns:v1.0.x --tag shelken/mosdns:latest --builder=multi-arch-build --push
+just build
 ```
 
-- 本地测试
+- 本地测试 进入容器
 
 ```shell
-just exec
-# or
-docker-buildx build . --platform linux/arm64 --tag shelken/mosdns:latest --builder=multi-arch-build --load
+just exec 
+```
+
+- 本地测试 使用53接口
+
+```shell
+just run
 ```
 
 ## mosdns wiki

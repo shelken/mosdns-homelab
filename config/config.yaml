@@ -311,7 +311,7 @@ plugins:
         - if: query_is_noncn_domain
           exec:
             # 优先返回ipv4结果
-            - _prefer_ipv4
+            # - _prefer_ipv4
             - ecs_global
             - primary:
                 # 默认用分流服务器
@@ -346,7 +346,7 @@ plugins:
         - if: query_is_non_local_domain
           exec:
             # 优先返回ipv4结果
-            - _prefer_ipv4
+            # - _prefer_ipv4
             - ecs_global
             - primary:
                 # 默认用分流服务器
@@ -361,7 +361,7 @@ plugins:
 
         # 剩下的未知域名用IP分流
         # 优先返回ipv4结果
-        - _prefer_ipv4
+        # - _prefer_ipv4
         - primary:
             # 默认用分流服务器
             - ecs_local

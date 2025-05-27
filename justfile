@@ -1,6 +1,8 @@
-test:
+build:
   docker build . -t shelken/mosdns:test
 
 exec:
-  touch /tmp/host-custom
-  docker run --rm -v /tmp/host-custom:/etc/mosdns/hosts/custom -p 5533:53/udp --name mosdns -it shelken/mosdns:test sh
+  docker run -it --rm --name mosdns-exec --entrypoint /bin/sh shelken/mosdns:test
+
+run:
+  docker run -it --rm -p 53:53/udp --name mosdns-run shelken/mosdns:test
