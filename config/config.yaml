@@ -34,6 +34,9 @@ data_providers:
   - tag: hosts
     file: ./hosts.txt
     auto_reload: true
+  - tag: shortcache
+    file: ./short_cache.txt
+    auto_reload: true
 
 plugins:
   # 缓存的插件
@@ -45,7 +48,7 @@ plugins:
       #redis: "redis://127.0.0.1:6379/0"
       lazy_cache_ttl: 86400
       cache_everything: true
-      lazy_cache_reply_ttl: 1
+      lazy_cache_reply_ttl: 80
   - tag: cache_wan
     type: cache
     args:
@@ -54,7 +57,15 @@ plugins:
       #redis: "redis://127.0.0.1:6379/0"
       lazy_cache_ttl: 86400
       cache_everything: true
-      lazy_cache_reply_ttl: 5
+      lazy_cache_reply_ttl: 250
+  - tag: cache_short
+    type: cache
+    args:
+      # size: 8192
+      #redis: "redis://127.0.0.1:6379/0"
+      lazy_cache_ttl: 60
+      cache_everything: true
+      lazy_cache_reply_ttl: 10
 
   # Hosts的插件
   - tag: hosts
@@ -220,6 +231,12 @@ plugins:
       domain:
         - "provider:ecsnoncn"
 
+  - tag: query_is_short_cache
+    type: query_matcher
+    args:
+      domain:
+        - "provider:shortcache"
+
   # 匹配本地IP的插件
   - tag: response_has_local_ip
     type: response_matcher
@@ -293,12 +310,16 @@ plugins:
         # 缓存ECS
         - ecs_auto
         - _edns0_filter_ecs_only
-        - if: ecs_is_lan
+        - if: "!query_is_short_cache"
           exec:
-            - cache_lan
-            - _no_ecs
+            - if: ecs_is_lan
+              exec:
+                - cache_lan
+                - _no_ecs
+              else_exec:
+                - cache_wan
           else_exec:
-            - cache_wan
+            - cache_short
 
         # 强制用本地服务器解析
         - if: query_is_cn_domain
