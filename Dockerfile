@@ -34,6 +34,7 @@ COPY config/ecs_cn_domain.txt /etc/mosdns/
 COPY config/ecs_noncn_domain.txt /etc/mosdns/
 COPY config/hosts.txt /etc/mosdns/
 COPY config/short_cache.txt /etc/mosdns/
+COPY config/router.txt /etc/mosdns/
 
 VOLUME /etc/mosdns
 EXPOSE 53/udp 53/tcp 8338/tcp

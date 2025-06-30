@@ -6,6 +6,7 @@
 ecs_local_v4=$ECS_LOCAL_IPV4
 ecs_local_v6=$ECS_LOCAL_IPV6
 private_dns_server=$PRIVATE_DNS_SERVER
+router_host=$ROUTER_HOST
 
 # 检查环境变量$PRIVATE_DNS_SERVER是否设置
 if [ -z "$private_dns_server" ]; then
@@ -23,10 +24,14 @@ fi
 if [ -z "$ecs_local_v6" ]; then
     ecs_local_v6="2408:8459::" # 广东联通
 fi
+if [ -z "$router_host" ]; then
+    router_host="192.168.6.1" # 没有设置系统路由器地址默认192.168.6.1
+fi
 
 # 替换/etc/mosdns/config.yaml中的变量$private_dns_server
 sed -i "s#\$PRIVATE_DNS_SERVER#$private_dns_server#g" /etc/mosdns/config.yaml
 sed -i "s#\$ECS_LOCAL_IPV4#$ecs_local_v4#g" /etc/mosdns/config.yaml
 sed -i "s#\$ECS_LOCAL_IPV6#$ecs_local_v6#g" /etc/mosdns/config.yaml
+sed -i "s#\$ROUTER_HOST#$router_host#g" /etc/mosdns/config.yaml
 
 /usr/bin/mosdns start --dir /etc/mosdns

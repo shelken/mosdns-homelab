@@ -36,6 +36,9 @@ data_providers:
     auto_reload: true
   - tag: shortcache
     file: ./short_cache.txt
+    auto_reload: true  
+  - tag: router
+    file: ./router.txt
     auto_reload: true
 
 plugins:
@@ -237,6 +240,12 @@ plugins:
       domain:
         - "provider:shortcache"
 
+  - tag: query_to_router
+    type: query_matcher
+    args:
+      domain:
+        - "provider:router"
+
   # 匹配本地IP的插件
   - tag: response_has_local_ip
     type: response_matcher
@@ -258,6 +267,12 @@ plugins:
       upstream:
         - addr: "223.5.5.5"
         - addr: "119.29.29.29"
+
+  - tag: forward_router
+    type: fast_forward
+    args:
+      upstream:
+        - addr: "$ROUTER_HOST"
 
   # 转发至远程服务器的插件
   - tag: forward_remote
@@ -292,6 +307,12 @@ plugins:
         - metrics_collector
         # 域名映射IP
         - hosts
+        # 转发到系统路由器
+        - if: query_to_router
+          exec: 
+            - forward_router
+            - ttl_1m
+            - _return
 
         # 屏蔽TYPE65与无效类型请求
         - if: "[qtype65] || (query_is_non_domain)"
