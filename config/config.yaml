@@ -13,7 +13,7 @@ plugins:
     args:
       upstream:
         - addr: "$REMOTE_DNS_SERVER_1"
-        - addr: "$REMOTE_DNS_SERVER_2"
+        # - addr: "$REMOTE_DNS_SERVER_2"
   - tag: ttl_5m
     type: ttl
     args:
