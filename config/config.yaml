@@ -3,8 +3,8 @@ log:
   # file: "/logs/mosdns.log"
 
 # 用于普罗米修斯监控
-# api:
-#   http: "0.0.0.0:8338" # api 监听地址
+api:
+  http: "0.0.0.0:8338" # api 监听地址
 
 plugins:
   # 只保留转发至远程服务器的插件
@@ -14,13 +14,22 @@ plugins:
       upstream:
         - addr: "$REMOTE_DNS_SERVER_1"
         - addr: "$REMOTE_DNS_SERVER_2"
+  - tag: ttl_5m
+    type: ttl
+    args:
+      minimal_ttl: 300
+      maximum_ttl: 86400
 
   # 主要运行逻辑：只转发到 forward_remote
   - tag: main_sequence
     type: sequence
     args:
       exec:
+        # 统计数据，用于Prometheus
+        - metrics_collector
         - forward_remote
+        - _return
+        - ttl_5m
 
 servers:
   - exec: main_sequence
