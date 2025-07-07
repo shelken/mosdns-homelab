@@ -7,6 +7,8 @@ ecs_local_v4=$ECS_LOCAL_IPV4
 ecs_local_v6=$ECS_LOCAL_IPV6
 private_dns_server=$PRIVATE_DNS_SERVER
 router_host=$ROUTER_HOST
+remote_dns_server_1=$REMOTE_DNS_SERVER_1
+remote_dns_server_2=$REMOTE_DNS_SERVER_2
 
 # 检查环境变量$PRIVATE_DNS_SERVER是否设置
 if [ -z "$private_dns_server" ]; then
@@ -27,11 +29,19 @@ fi
 if [ -z "$router_host" ]; then
     router_host="192.168.6.1" # 没有设置系统路由器地址默认192.168.6.1
 fi
+if [ -z "$remote_dns_server_1" ]; then
+    remote_dns_server_1="1.1.1.1" # 
+fi
+if [ -z "$remote_dns_server_2" ]; then
+    remote_dns_server_2="8.8.8.8" # 
+fi
 
 # 替换/etc/mosdns/config.yaml中的变量$private_dns_server
 sed -i "s#\$PRIVATE_DNS_SERVER#$private_dns_server#g" /etc/mosdns/config.yaml
 sed -i "s#\$ECS_LOCAL_IPV4#$ecs_local_v4#g" /etc/mosdns/config.yaml
 sed -i "s#\$ECS_LOCAL_IPV6#$ecs_local_v6#g" /etc/mosdns/config.yaml
 sed -i "s#\$ROUTER_HOST#$router_host#g" /etc/mosdns/config.yaml
+sed -i "s#\$REMOTE_DNS_SERVER_1#$remote_dns_server_1#g" /etc/mosdns/config.yaml
+sed -i "s#\$REMOTE_DNS_SERVER_2#$remote_dns_server_2#g" /etc/mosdns/config.yaml
 
 /usr/bin/mosdns start --dir /etc/mosdns

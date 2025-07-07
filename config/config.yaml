@@ -49,7 +49,7 @@ plugins:
     args:
       size: 8192
       #redis: "redis://127.0.0.1:6379/0"
-      lazy_cache_ttl: 86400
+      lazy_cache_ttl: 3600
       cache_everything: true
       lazy_cache_reply_ttl: 80
   - tag: cache_wan
@@ -58,7 +58,7 @@ plugins:
       size: 131072
       compress_resp: true
       #redis: "redis://127.0.0.1:6379/0"
-      lazy_cache_ttl: 86400
+      lazy_cache_ttl: 3600
       cache_everything: true
       lazy_cache_reply_ttl: 250
   - tag: cache_short
@@ -279,10 +279,10 @@ plugins:
     type: fast_forward
     args:
       upstream:
-        - addr: "tcp://208.67.220.220:5353"
-          enable_pipeline: true
+        - addr: "$REMOTE_DNS_SERVER_1"
+        - addr: "$REMOTE_DNS_SERVER_2"
           #socks5: "127.0.0.1:1080"
-        - addr: "udpme://8.8.8.8"
+        # - addr: "udpme://8.8.8.8"
 
   # 转发至分流服务器的插件
   - tag: forward_easymosdns
