@@ -9,6 +9,7 @@
 - 使用IPV6,不会仅返回v4
 - 引入PRIVATE_DNS_SERVER变量，用于自定义自己的上游dns
 - 增加short_cache,不再缓存太长时间，目前设定1m
+- 增加转发模式用于vps
 
 ## CheatSheet
 
