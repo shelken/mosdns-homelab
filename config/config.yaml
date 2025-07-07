@@ -19,6 +19,9 @@ plugins:
     args:
       minimal_ttl: 300
       maximum_ttl: 86400
+  # 数据统计
+  - tag: metrics_collector
+    type: metrics_collector
 
   # 主要运行逻辑：只转发到 forward_remote
   - tag: main_sequence
