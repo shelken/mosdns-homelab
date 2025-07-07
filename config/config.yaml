@@ -43,7 +43,7 @@ servers:
       - protocol: tcp
         addr: "0.0.0.0:53"
       - protocol: http
-        addr: "127.0.0.1:9053"
+        addr: "0.0.0.0:9053"
         url_path: "/dns-query"
         get_user_ip_from_header: "X-Forwarded-For"
       #- protocol: tls             
