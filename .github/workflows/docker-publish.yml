@@ -23,9 +23,6 @@ on:
       - "docker-bake.hcl"
     tags: ["v*.*.*"]
 
-env:
-  CURRENT_CONTEXT: config_v5
-
 jobs:
   plan:
     name: Plan
@@ -158,7 +155,7 @@ jobs:
             *.tags=
           source: .
           targets: image
-          workdir: ${{ env.CURRENT_CONTEXT }}
+          workdir: .
 
       - if: ${{ needs.plan.outputs.release }}
         name: Export Digest
