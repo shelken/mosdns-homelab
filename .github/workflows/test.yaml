@@ -1,0 +1,19 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Test
+        id: test
+        shell: bash
+        working-directory: .
+        run: |
+          echo "test"

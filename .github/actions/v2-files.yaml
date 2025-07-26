@@ -1,0 +1,49 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: Download Dat
+description: Download Dat
+
+inputs:
+  upload_name:
+    description: '文件上传名'
+    required: true
+
+# outputs:
+#   apps:
+#     description: Application Inventory
+#     value: ${{ steps.inventory.outputs.apps }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download Dat
+      shell: bash
+      id: download
+      run: |
+        set -xeuo pipefail
+
+        dat_dir=${{ runner.temp }}/dat
+        mkdir -p $dat_dir
+
+        # 安装 v2dat（Go 工具）
+        go install github.com/urlesistiana/v2dat@latest
+
+        # 下载 geoip.dat / geosite.dat
+        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/geoip.dat
+        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/geosite.dat
+
+        # 解包规则
+        v2dat unpack geoip -o $dat_dir -f "private" /tmp/geoip.dat
+        v2dat unpack geoip -o $dat_dir -f "cn" /tmp/geoip.dat
+        v2dat unpack geosite -o $dat_dir -f "cn" /tmp/geosite.dat
+        v2dat unpack geosite -o $dat_dir -f "gfw" /tmp/geosite.dat
+        v2dat unpack geosite -o $dat_dir -f "category-ads-all" /tmp/geosite.dat
+        v2dat unpack geosite -o $dat_dir -f "geolocation-!cn" /tmp/geosite.dat
+      
+    - name: Upload Dat
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{ inputs.upload_name }}
+        path: ${{ runner.temp }}/dat/*
+        if-no-files-found: error
+        retention-days: 1
