@@ -29,8 +29,8 @@ runs:
         mkdir -p $dat_dir
 
         # 下载 geoip.dat / geosite.dat
-        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o $dat_dir/geoip.dat
-        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o $dat_dir/geosite.dat
+        curl -fsSL https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o $dat_dir/geoip.dat
+        curl -fsSL https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o $dat_dir/geosite.dat
 
         # 解包规则
         v2dat unpack geoip -o $dat_dir -f "private" $dat_dir/geoip.dat
