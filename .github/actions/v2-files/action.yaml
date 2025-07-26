@@ -16,13 +16,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - 
     - name: Download Dat
       shell: bash
       id: download
       run: |
         set -xeuo pipefail
-        
+
         go install github.com/urlesistiana/v2dat@latest
         export PATH="$(go env GOPATH)/bin:$PATH"
 
