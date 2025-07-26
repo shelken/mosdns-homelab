@@ -16,17 +16,18 @@ inputs:
 runs:
   using: composite
   steps:
+    - 
     - name: Download Dat
       shell: bash
       id: download
       run: |
         set -xeuo pipefail
+        
+        go install github.com/urlesistiana/v2dat@latest
+        export PATH="$(go env GOPATH)/bin:$PATH"
 
         dat_dir=${{ runner.temp }}/dat
         mkdir -p $dat_dir
-
-        # 安装 v2dat（Go 工具）
-        go install github.com/urlesistiana/v2dat@latest
 
         # 下载 geoip.dat / geosite.dat
         curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/geoip.dat
