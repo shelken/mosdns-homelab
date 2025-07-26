@@ -29,16 +29,16 @@ runs:
         mkdir -p $dat_dir
 
         # 下载 geoip.dat / geosite.dat
-        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/geoip.dat
-        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/geosite.dat
+        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o $dat_dir/geoip.dat
+        curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o $dat_dir/geosite.dat
 
         # 解包规则
-        v2dat unpack geoip -o $dat_dir -f "private" /tmp/geoip.dat
-        v2dat unpack geoip -o $dat_dir -f "cn" /tmp/geoip.dat
-        v2dat unpack geosite -o $dat_dir -f "cn" /tmp/geosite.dat
-        v2dat unpack geosite -o $dat_dir -f "gfw" /tmp/geosite.dat
-        v2dat unpack geosite -o $dat_dir -f "category-ads-all" /tmp/geosite.dat
-        v2dat unpack geosite -o $dat_dir -f "geolocation-!cn" /tmp/geosite.dat
+        v2dat unpack geoip -o $dat_dir -f "private" $dat_dir/geoip.dat
+        v2dat unpack geoip -o $dat_dir -f "cn" $dat_dir/geoip.dat
+        v2dat unpack geosite -o $dat_dir -f "cn" $dat_dir/geosite.dat
+        v2dat unpack geosite -o $dat_dir -f "gfw" $dat_dir/geosite.dat
+        v2dat unpack geosite -o $dat_dir -f "category-ads-all" $dat_dir/geosite.dat
+        v2dat unpack geosite -o $dat_dir -f "geolocation-!cn" $dat_dir/geosite.dat
       
     - name: Upload Dat
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
