@@ -21,7 +21,7 @@ target "image" {
   args = {
     VERSION = "${VERSION}"
   }
-  dockerfile = "config_v5/Dockerfile"
+  context = "config_v5/"
   labels = {
     "org.opencontainers.image.source" = "${SOURCE}"
   }
